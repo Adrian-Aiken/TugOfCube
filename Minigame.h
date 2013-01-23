@@ -1,4 +1,5 @@
 #include <sifteo.h>
+using namespace Sifteo;
 
 class Minigame {
 public:
@@ -16,4 +17,4 @@ private:
 	VideoBuffer vid;
 	unsigned frame;
 	float fpsTimeSpan;
-}
+};

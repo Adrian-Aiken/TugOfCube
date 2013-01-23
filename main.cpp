@@ -1,5 +1,7 @@
 #include <sifteo.h>
 #include "assets.gen.h"
+#include "Minigame.h"
+
 using namespace Sifteo;
 
 static const	int				numCubes = 3;
@@ -63,17 +65,52 @@ private:
 };
 
 
+class MiddleGameCube {
+public:
+	void init(CubeID _cube){
+		cube = _cube;
+		vid.initMode(BG0_SPR_BG1);
+		vid.attach(_cube);
+
+		// Background
+		vid.bg0.image(vec(0,0), BlackBG);
+	}
+
+	void update(TimeDelta timestep){
+		if (isRunning) timeSpan += timestep.seconds();
+
+
+	}
+
+	void stopTimer(){
+		isRunning = false;
+	}
+
+	void resetTimer(){
+		timeSpan = 0.0;
+		isRunning = true;
+	}
+private:
+	VideoBuffer	vid;
+	bool		isRunning;
+	float		timeSpan;
+	int			cube;
+};
+
+
 void main(){
 
-	static TiltGameCube cubes[numCubes];
+	static TiltGameCube cubes[2];
+	static MiddleGameCube mid;
 
 	ballCube = 0;
 
 	ballPos = LCD_center;
 	ballVel = vec(0,0);
 
-	for (unsigned i = 0; i < arraysize(cubes); i++)
-		cubes[i].init(i);
+	cubes[0].init(0);
+	mid.init(1);
+	cubes[1].init(2);
 
 	TimeStep ts;
 	while (1) {
@@ -92,7 +129,7 @@ void main(){
 		ballPos += ballVel * float(ts.delta());
 
 		if (ballPos.x <= minPosition.x) {
-			if (neighbors.hasCubeAt(LEFT)){
+			if (neighbors.hasCubeAt(LEFT) && neighbors.cubeAt(LEFT) != 1){
 				ballPos.x += maxPosition.x;
 				ballCube = neighbors.cubeAt(LEFT);
 			} else {
@@ -101,7 +138,7 @@ void main(){
 			}			
 		}
 		if (ballPos.x >= maxPosition.x) {
-			if (neighbors.hasCubeAt(RIGHT)){
+			if (neighbors.hasCubeAt(RIGHT) && neighbors.cubeAt(RIGHT) != 1){
 				ballPos.x = minPosition.x;
 				ballCube = neighbors.cubeAt(RIGHT);
 			} else {
@@ -121,6 +158,8 @@ void main(){
 
 		for (unsigned i = 0; i < arraysize(cubes); i++)
 			cubes[i].update(ts.delta());
+		mid.update(ts.delta());
+
 
 		System::paint();
 		ts.next();

@@ -72,14 +72,21 @@ public:
 		vid.initMode(BG0_SPR_BG1);
 		vid.attach(_cube);
 
-		// Background
-		vid.bg0.image(vec(0,0), BlackBG);
+		ropePos = 0.0;
+
+		// Background & images
+		vid.bg0.image(vec(0,0), MiddleBG);
 	}
 
 	void update(TimeDelta timestep){
 		if (isRunning) timeSpan += timestep.seconds();
 
-
+		// JUST TO TEST OUT ROPE STUFF
+		ropePos += float(vid.physicalAccel().x) / 10;
+		
+		vid.sprites[0].setImage(Ball);
+		vid.sprites[0].move( (LCD_width/2) + ropePos - (Knot.pixelWidth() / 2), 80);
+								
 	}
 
 	void stopTimer(){
@@ -95,6 +102,7 @@ private:
 	bool		isRunning;
 	float		timeSpan;
 	int			cube;
+	float		ropePos;
 };
 
 

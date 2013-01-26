@@ -76,6 +76,7 @@ public:
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
+		temp = 0;
 	}
 
 	void update(TimeDelta timestep){
@@ -84,9 +85,20 @@ public:
 		// JUST TO TEST OUT ROPE STUFF
 		ropePos += float(vid.physicalAccel().x) / 10;
 		
-		vid.sprites[0].setImage(Ball);
-		vid.sprites[0].move( (LCD_width/2) + ropePos - (Knot.pixelWidth() / 2), 80);
-								
+		vid.sprites[0].setImage(Knot);
+		vid.sprites[0].move( (LCD_width/2) + ropePos - (Knot.pixelWidth() / 2), 65);
+
+		// Put in the time
+		vid.sprites[1].setImage(Digits, temp);
+		vid.sprites[2].setImage(Digits, temp);
+		vid.sprites[3].setImage(Digits, temp);
+		vid.sprites[4].setImage(Digits, temp);
+		temp = (temp + 1) % 10;
+		vid.sprites[1].move(34, 12);
+		vid.sprites[2].move(44, 12);
+		vid.sprites[3].move(60, 12);
+		vid.sprites[4].move(70, 12);
+
 	}
 
 	void stopTimer(){
@@ -103,6 +115,7 @@ private:
 	float		timeSpan;
 	int			cube;
 	float		ropePos;
+	int			temp;
 };
 
 

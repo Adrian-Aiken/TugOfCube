@@ -165,3 +165,5 @@ pip-log.txt
 
 assets.gen.*
 *.elf
+*.o
+*.d

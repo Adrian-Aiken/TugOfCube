@@ -6,10 +6,13 @@ using namespace Sifteo;
 
 static const	int				numCubes = 3;
 static			int				ballCube = 0;
+static const	int				toWin = 3;
+static			int				points = 0;
 static			Float2			ballPos;
 static			Float2			ballVel;
 static			Float2			ballAcc;
 static			Neighborhood	neighbors;
+
 
 static AssetSlot MainSlot = AssetSlot::allocate()
 	.bootstrap(GameAssets);
@@ -19,6 +22,9 @@ static Metadata M = Metadata()
 	.package("edu.rit.aca6943.tilting", "0.1")
 	.icon(Icon)
 	.cubeRange(3);
+
+// CUBE ENUMS
+enum { P1, MIDDLE, P2 };
 
 class TiltGameCube {
 public:
@@ -72,7 +78,9 @@ public:
 		vid.initMode(BG0_SPR_BG1);
 		vid.attach(_cube);
 
-		ropePos = 0.0;
+		ropePos = LCD_width/2 - (Knot.pixelWidth() / 2);
+		ropeDelta = LCD_width / (toWin * 2);
+
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
@@ -88,11 +96,12 @@ public:
 			timeSpan = 0.0;
 		}
 
-		// JUST TO TEST OUT ROPE STUFF
-		ropePos += float(vid.physicalAccel().x) / 10;
-		
-		vid.sprites[0].setImage(Knot);
-		vid.sprites[0].move( (LCD_width/2) + ropePos - (Knot.pixelWidth() / 2), 65);
+		// JUST TO TEST OUT ROPE STUFF		
+		vid.sprites[6].setImage(Knot);
+		vid.sprites[6].move( (toWin + points - 1) * ropeDelta, 65);
+
+		vid.sprites[0].setImage(Digits, (toWin+points+100) % 10);
+		vid.sprites[0].move(LCD_width / 2, LCD_height / 2);
 
 		// Put in the time
 
@@ -119,19 +128,27 @@ public:
 	void startTimer(){
 		isRunning = true;
 	}
+
+	void addPoints(int player){
+		if (player == P1) points--;
+		if (player == P2) points++;
+	}
+
 private:
 	VideoBuffer	vid;
 	bool		isRunning;
 	float		timeSpan;
 	CubeID		cube;
 	float		ropePos;
+	float		ropeDelta;
 };
+
 
 
 void main(){
 
-	static TiltGameCube cubes[2];
-	static MiddleGameCube mid;
+	static			TiltGameCube	cubes[2];
+	static			MiddleGameCube	mid;
 
 	ballCube = 0;
 
@@ -142,53 +159,42 @@ void main(){
 	mid.init(1);
 	cubes[1].init(2);
 
+	
+
 	TimeStep ts;
+	float toWait;
+	bool going = true;
 	while (1) {
-		// The game logic loop
-		const Float2 minPosition = { 0, 0 };
-		const Float2 maxPosition = { LCD_width - Ball.pixelWidth(), LCD_height - Ball.pixelHeight() };
-        const float deadzone = 2.0f;
-        const float accelScale = 0.5f;
-        const float damping = 0.95f;
+		TimeDelta td = ts.delta();
 
-		neighbors = Neighborhood(ballCube);
-
-		if (ballAcc.len2() > deadzone * deadzone)
-			ballVel += ballAcc * accelScale;
-		ballVel *= damping;
-		ballPos += ballVel * float(ts.delta());
-
-		if (ballPos.x <= minPosition.x) {
-			if (neighbors.hasCubeAt(LEFT) && neighbors.cubeAt(LEFT) != 1){
-				ballPos.x += maxPosition.x;
-				ballCube = neighbors.cubeAt(LEFT);
-			} else {
-				ballPos.x = minPosition.x; 
-				ballVel.x *= -damping;
-			}			
-		}
-		if (ballPos.x >= maxPosition.x) {
-			if (neighbors.hasCubeAt(RIGHT) && neighbors.cubeAt(RIGHT) != 1){
-				ballPos.x = minPosition.x;
-				ballCube = neighbors.cubeAt(RIGHT);
-			} else {
-				ballPos.x = maxPosition.x;
-				ballVel.x *= -damping;
+		if (going) {
+			neighbors = Neighborhood(MIDDLE);
+			if ( neighbors.sideOf(P1) != NO_SIDE ) {
+				mid.addPoints(P1);
+				toWait = 3.0;
+				mid.stopTimer();
+				going = false;
+			}
+			if ( neighbors.sideOf(P2) != NO_SIDE ) {
+				mid.addPoints(P2);
+				toWait = 3.0;
+				mid.stopTimer();
+				going = false;
 			}
 		}
-		if (ballPos.y <= minPosition.y) {
-			ballPos.y = minPosition.y;
-			ballVel.y *= -damping;
-		}
-		if (ballPos.y >= maxPosition.y) {
-			ballPos.y = maxPosition.y;
-			ballVel.y *= -damping;
-		}
 
+		else {
+			toWait -= td.seconds();
+			if (toWait < 0.0){
+				mid.resetTimer();
+				mid.startTimer();
+				going = true;
+			}
+		}
 
 		for (unsigned i = 0; i < arraysize(cubes); i++)
-			cubes[i].update(ts.delta());
-		mid.update(ts.delta());
+			cubes[i].update(td);
+		mid.update(td);
 
 
 		System::paint();

@@ -76,11 +76,17 @@ public:
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
-		temp = 0;
+
+		resetTimer();
+		startTimer();
 	}
 
 	void update(TimeDelta timestep){
-		if (isRunning) timeSpan += timestep.seconds();
+		if (isRunning) timeSpan -= timestep.seconds();
+		if (timeSpan < 0.0) {
+			stopTimer();
+			timeSpan = 0.0;
+		}
 
 		// JUST TO TEST OUT ROPE STUFF
 		ropePos += float(vid.physicalAccel().x) / 10;
@@ -89,15 +95,16 @@ public:
 		vid.sprites[0].move( (LCD_width/2) + ropePos - (Knot.pixelWidth() / 2), 65);
 
 		// Put in the time
-		vid.sprites[1].setImage(Digits, temp);
-		vid.sprites[2].setImage(Digits, temp);
-		vid.sprites[3].setImage(Digits, temp);
-		vid.sprites[4].setImage(Digits, temp);
-		temp = (temp + 1) % 10;
+
+		vid.sprites[1].setImage(Digits, floor(timeSpan / 10) % 10 );
+		vid.sprites[2].setImage(Digits, floor(timeSpan) % 10);
+		vid.sprites[3].setImage(Digits, floor(timeSpan * 10) % 10 );
+		vid.sprites[4].setImage(Digits, floor(timeSpan *100) % 10 );
 		vid.sprites[1].move(34, 12);
 		vid.sprites[2].move(44, 12);
 		vid.sprites[3].move(60, 12);
 		vid.sprites[4].move(70, 12);
+
 
 	}
 
@@ -105,17 +112,19 @@ public:
 		isRunning = false;
 	}
 
-	void resetTimer(){
-		timeSpan = 0.0;
+	void resetTimer(float resetTo = 10.0){
+		timeSpan = resetTo;
+	}
+
+	void startTimer(){
 		isRunning = true;
 	}
 private:
 	VideoBuffer	vid;
 	bool		isRunning;
 	float		timeSpan;
-	int			cube;
+	CubeID		cube;
 	float		ropePos;
-	int			temp;
 };
 
 

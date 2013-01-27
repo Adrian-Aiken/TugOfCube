@@ -18,8 +18,8 @@ static AssetSlot MainSlot = AssetSlot::allocate()
 	.bootstrap(GameAssets);
 
 static Metadata M = Metadata()
-	.title("Tilting Prototype")
-	.package("edu.rit.aca6943.tilting", "0.1")
+	.title("Tug Of Cube Prototype")
+	.package("edu.rit.aca6943.tilting", "0.2")
 	.icon(Icon)
 	.cubeRange(3);
 

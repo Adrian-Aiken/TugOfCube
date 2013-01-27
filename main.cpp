@@ -26,42 +26,76 @@ static Metadata M = Metadata()
 // CUBE ENUMS
 enum { P1, MIDDLE, P2 };
 
-class TiltGameCube {
+class MinigameCube {
 public:
 
 	void init(CubeID _cube){
-		bg.x = 0;
-		bg.y = 0;
 		cube = _cube;
-
+		done = false;
+		timespan = 0;
+		
 		vid.initMode(BG0_SPR_BG1);
 		vid.attach(cube);
 
 		// Put in the background image
-		vid.bg0.image(vec(0,0), Background);
+		vid.bg0.image(vec(0,0), Blank);
 		
 	}
 
-	void update(TimeDelta timeStep){
-
-		if (ballCube == cube){
-			vid.sprites[0].setImage(Ball);
-			vid.sprites[0].move(ballPos);
-
-			ballAcc = vid.physicalAccel().xy();
-		}
-		
-		else {
-			vid.sprites[0].hide();
-		}
+	void update(TimeDelta timestep){
+		if (!done) {
+			timespan += timestep.seconds();
 			
+			// switch (1-n) for minigame type
+			if (minigameType == 0) {
+				Float2 accel = vid.physicalAccel().xy();
+				if (accel.x > 0 && accel.y > 0) {
+					done = true;
+				}
+			} else if (minigameType == 1) {
+				// check touch
+				Float2 accel = vid.physicalAccel().xy();
+				if (accel.x > 0 && accel.y > 0) {
+					done = true;
+				}
 
+			}
+		}
+	}
+	
+	void resetMinigame() {
+		vid.bg0.image(vec(0,0), Blank);
+	}
+	
+	void startMinigame(int type){ // take a param that sets game num
+
+		done = false;
+		timespan = 0;
+		minigameType = type;
+	
+		if (minigameType == 0) {
+			vid.bg0.image(vec(0,0), Background);
+		} else if (minigameType == 1) {
+			vid.bg1.image(vec(0,0), PressBackground);
+		}
+	}
+	
+	
+	bool isDone() {
+		return done;
+	}
+	
+	float getTimespan() {
+		return timespan;
 	}
 
 private:
 	VideoBuffer vid;
 	Float2		bg;
 	int			cube;
+	int			minigameType;
+	float 		timespan;
+	bool		done;
 
 	void writeText(const char *str)
     {
@@ -81,12 +115,14 @@ public:
 		ropePos = LCD_width/2 - (Knot.pixelWidth() / 2);
 		ropeDelta = LCD_width / (toWin * 2);
 
+		readyToPlay = false;
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
 
 		resetTimer();
-		startTimer();
+		//startTimer();
+        Events::cubeTouch.set(&MiddleGameCube::onTouch, this);
 	}
 
 	void update(TimeDelta timestep){
@@ -133,10 +169,25 @@ public:
 		if (player == P1) points--;
 		if (player == P2) points++;
 	}
+	
+	void onTouch(unsigned id)
+    {
+		startTimer();
+		readyToPlay = true;
+    }
+	
+	bool isReadyToPlay() {
+		return readyToPlay;
+	}
+	
+	void setReadyToPlay(bool isReady) {
+		readyToPlay = isReady;
+	}
 
 private:
 	VideoBuffer	vid;
 	bool		isRunning;
+	bool		readyToPlay;
 	float		timeSpan;
 	CubeID		cube;
 	float		ropePos;
@@ -147,24 +198,18 @@ private:
 
 void main(){
 
-	static			TiltGameCube	cubes[2];
-	static			MiddleGameCube	mid;
-
-	ballCube = 0;
-
-	ballPos = LCD_center;
-	ballVel = vec(0,0);
+	static MinigameCube cubes[2];
+	static MiddleGameCube mid;
 
 	cubes[0].init(0);
 	mid.init(1);
 	cubes[1].init(2);
 
-	
-
 	TimeStep ts;
 	float toWait;
 	bool going = true;
 	while (1) {
+<<<<<<< HEAD
 		TimeDelta td = ts.delta();
 
 		if (going) {
@@ -189,6 +234,25 @@ void main(){
 				mid.resetTimer();
 				mid.startTimer();
 				going = true;
+			}
+		}
+
+		if (mid.isReadyToPlay()) {
+			Random rand;
+			int type = rand.randint(0, 0);
+			cubes[0].startMinigame(type);
+			cubes[1].startMinigame(type);
+			mid.setReadyToPlay(false);
+		} else if (!mid.isReadyToPlay()) {
+			if (cubes[0].isDone()) {
+				cubes[0].resetMinigame();
+			}
+			if (cubes[1].isDone()) {
+				cubes[1].resetMinigame();
+			}
+			if (cubes[0].isDone() && cubes[1].isDone()) {
+				// update knot
+				mid.resetTimer(10);
 			}
 		}
 

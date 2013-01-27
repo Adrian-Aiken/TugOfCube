@@ -209,7 +209,6 @@ void main(){
 	float toWait;
 	bool going = true;
 	while (1) {
-<<<<<<< HEAD
 		TimeDelta td = ts.delta();
 
 		if (going) {

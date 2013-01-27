@@ -49,13 +49,15 @@ public:
 			// switch (1-n) for minigame type
 			if (minigameType == 0) {
 				Float2 accel = vid.physicalAccel().xy();
-				if (accel.x > 0 && accel.y > 0) {
-					done = true;
+				if (abs(accel.x) > 20 && abs(accel.y) > 20) {
+					shakeCount++;
+					if (shakeCount >= 3) {
+						done = true;
+					}
 				}
 			} else if (minigameType == 1) {
 				// check touch
-				Float2 accel = vid.physicalAccel().xy();
-				if (accel.x > 0 && accel.y > 0) {
+				if (cube.isTouching()) {
 					done = true;
 				}
 
@@ -75,6 +77,7 @@ public:
 	
 		if (minigameType == 0) {
 			vid.bg0.image(vec(0,0), Background);
+			shakeCount = 0;
 		} else if (minigameType == 1) {
 			vid.bg1.image(vec(0,0), PressBackground);
 		}
@@ -92,10 +95,11 @@ public:
 private:
 	VideoBuffer vid;
 	Float2		bg;
-	int			cube;
+	CubeID		cube;
 	int			minigameType;
 	float 		timespan;
 	bool		done;
+	int			shakeCount;
 
 	void writeText(const char *str)
     {

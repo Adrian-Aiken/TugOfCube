@@ -1,4 +1,4 @@
-APP = sifteoApp
+APP = TugOfCube
 
 include $(SDK_DIR)/Makefile.defs
 

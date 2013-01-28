@@ -34,7 +34,7 @@ public:
 		done = false;
 		timespan = 0;
 		
-		vid.initMode(BG0_SPR_BG1);
+		vid.initMode(BG0);
 		vid.attach(cube);
 
 		// Put in the background image
@@ -49,10 +49,11 @@ public:
 			// switch (1-n) for minigame type
 			if (minigameType == 0) {
 				Float2 accel = vid.physicalAccel().xy();
-				if (abs(accel.x) > 20 && abs(accel.y) > 20) {
+				if (abs(accel.x) > 40 && abs(accel.y) > 40) {
 					shakeCount++;
 					if (shakeCount >= 3) {
 						done = true;
+						vid.bg0.image(vec(0,0), DoneBack);
 					}
 				}
 			} else if (minigameType == 1) {
@@ -66,7 +67,7 @@ public:
 	}
 	
 	void resetMinigame() {
-		vid.bg0.image(vec(0,0), Blank);
+		vid.bg0.image(vec(0,0), DoneBack);
 	}
 	
 	void startMinigame(int type){ // take a param that sets game num
@@ -79,7 +80,7 @@ public:
 			vid.bg0.image(vec(0,0), Background);
 			shakeCount = 0;
 		} else if (minigameType == 1) {
-			vid.bg1.image(vec(0,0), PressBackground);
+			vid.bg0.image(vec(0,0), PressBackground);
 		}
 	}
 	
@@ -120,6 +121,7 @@ public:
 		ropeDelta = LCD_width / (toWin * 2);
 
 		readyToPlay = false;
+		won = false;
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
@@ -130,6 +132,8 @@ public:
 	}
 
 	void update(TimeDelta timestep){
+		if (won) return;
+
 		if (isRunning) timeSpan -= timestep.seconds();
 		if (timeSpan < 0.0) {
 			stopTimer();
@@ -140,8 +144,18 @@ public:
 		vid.sprites[6].setImage(Knot);
 		vid.sprites[6].move( (toWin + points - 1) * ropeDelta, 65);
 
-		vid.sprites[0].setImage(Digits, (toWin+points+100) % 10);
-		vid.sprites[0].move(LCD_width / 2, LCD_height / 2);
+
+		// Testing if someone 'won'
+		if ( points <= -3 ) {
+			vid.sprites.erase();
+			vid.bg0.image(vec(0,0), Winner, 0);
+			won = true; readyToPlay = false;
+		}
+		if ( points >= 3 ) {
+			vid.sprites.erase();
+			vid.bg0.image(vec(0,0), Winner, 1);
+			won = true; readyToPlay = false;
+		}
 
 		// Put in the time
 
@@ -149,10 +163,10 @@ public:
 		vid.sprites[2].setImage(Digits, floor(timeSpan) % 10);
 		vid.sprites[3].setImage(Digits, floor(timeSpan * 10) % 10 );
 		vid.sprites[4].setImage(Digits, floor(timeSpan *100) % 10 );
-		vid.sprites[1].move(34, 12);
-		vid.sprites[2].move(44, 12);
-		vid.sprites[3].move(60, 12);
-		vid.sprites[4].move(70, 12);
+		vid.sprites[1].move(44, 24);
+		vid.sprites[2].move(54, 24);
+		vid.sprites[3].move(70, 24);
+		vid.sprites[4].move(80, 24);
 
 
 	}
@@ -176,6 +190,7 @@ public:
 	
 	void onTouch(unsigned id)
     {
+		if (won) return;
 		startTimer();
 		readyToPlay = true;
     }
@@ -192,6 +207,7 @@ private:
 	VideoBuffer	vid;
 	bool		isRunning;
 	bool		readyToPlay;
+	bool		won;
 	float		timeSpan;
 	CubeID		cube;
 	float		ropePos;
@@ -210,35 +226,30 @@ void main(){
 	cubes[1].init(2);
 
 	TimeStep ts;
-	float toWait;
 	bool going = true;
 	while (1) {
 		TimeDelta td = ts.delta();
 
 		if (going) {
 			neighbors = Neighborhood(MIDDLE);
-			if ( neighbors.sideOf(P1) != NO_SIDE ) {
+			if ( cubes[0].isDone() && neighbors.sideOf(P1) != NO_SIDE ) {
 				mid.addPoints(P1);
-				toWait = 3.0;
 				mid.stopTimer();
 				going = false;
 			}
-			if ( neighbors.sideOf(P2) != NO_SIDE ) {
+			if ( cubes[1].isDone() && neighbors.sideOf(P2) != NO_SIDE ) {
 				mid.addPoints(P2);
-				toWait = 3.0;
 				mid.stopTimer();
 				going = false;
 			}
 		}
 
-		else {
-			toWait -= td.seconds();
-			if (toWait < 0.0){
-				mid.resetTimer();
-				mid.startTimer();
-				going = true;
-			}
+		else if (mid.isReadyToPlay()){
+			mid.resetTimer();
+			mid.startTimer();
+			going = true;
 		}
+		
 
 		if (mid.isReadyToPlay()) {
 			Random rand;

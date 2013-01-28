@@ -60,6 +60,7 @@ public:
 				// check touch
 				if (cube.isTouching()) {
 					done = true;
+					vid.bg0.image(vec(0,0), DoneBack);
 				}
 
 			}
@@ -127,13 +128,15 @@ public:
 		vid.bg0.image(vec(0,0), MiddleBG);
 
 		resetTimer();
-		//startTimer();
-        Events::cubeTouch.set(&MiddleGameCube::onTouch, this);
 	}
 
 	void update(TimeDelta timestep){
 		if (won) return;
 
+		if (!readyToPlay && cube.isTouching()) {
+			onTouch();
+		}
+		
 		if (isRunning) timeSpan -= timestep.seconds();
 		if (timeSpan < 0.0) {
 			stopTimer();
@@ -188,7 +191,7 @@ public:
 		if (player == P2) points++;
 	}
 	
-	void onTouch(unsigned id)
+	void onTouch()
     {
 		if (won) return;
 		startTimer();
@@ -252,26 +255,23 @@ void main(){
 		
 
 		if (mid.isReadyToPlay()) {
+			mid.setReadyToPlay(false);
 			Random rand;
-			int type = rand.randint(0, 0);
+			int type = rand.randint(0, 1);
 			cubes[0].startMinigame(type);
 			cubes[1].startMinigame(type);
-			mid.setReadyToPlay(false);
 		} else if (!mid.isReadyToPlay()) {
-			if (cubes[0].isDone()) {
-				cubes[0].resetMinigame();
-			}
-			if (cubes[1].isDone()) {
-				cubes[1].resetMinigame();
-			}
 			if (cubes[0].isDone() && cubes[1].isDone()) {
 				// update knot
 				mid.resetTimer(10);
 			}
 		}
 
-		for (unsigned i = 0; i < arraysize(cubes); i++)
-			cubes[i].update(td);
+		for (unsigned i = 0; i < arraysize(cubes); i++) {
+			if (!cubes[i].isDone()) {
+				cubes[i].update(td);
+			}
+		}
 		mid.update(td);
 
 

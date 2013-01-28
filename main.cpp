@@ -63,6 +63,12 @@ public:
 					vid.bg0.image(vec(0,0), DoneBack);
 				}
 
+			} else if (minigameType == 2) {
+				int8_t z = vid.physicalAccel().z;
+				if (z < -30) {
+					done = true;
+					vid.bg0.image(vec(0,0), DoneBack);
+				}
 			}
 		}
 	}
@@ -82,6 +88,8 @@ public:
 			shakeCount = 0;
 		} else if (minigameType == 1) {
 			vid.bg0.image(vec(0,0), PressBackground);
+		} else if (minigameType == 2) {
+			vid.bg0.image(vec(0,0), FlipBackground);
 		}
 	}
 	
@@ -257,7 +265,7 @@ void main(){
 		if (mid.isReadyToPlay()) {
 			mid.setReadyToPlay(false);
 			Random rand;
-			int type = rand.randint(0, 1);
+			int type = rand.randint(0, 2);
 			cubes[0].startMinigame(type);
 			cubes[1].startMinigame(type);
 		} else if (!mid.isReadyToPlay()) {

@@ -5,6 +5,7 @@ Icon = image{"icon.png"}
 GameAssets	= group{}
 Background	= image{"shake.png", quality=9.5}
 PressBackground = image{"press.png", quality=5}
+FlipBackground = image{"Flip.png", quality=5}
 Blank		= image{"middlebg.png", quality=3}
 MiddleBG    = image{"tug_of_war_centercube.png", quality=3}
 Knot		= image{"knot_tog.png", pinned=true, width=64, height=64, quality=7}

@@ -58,9 +58,17 @@ public:
 				}
 			} else if (minigameType == 1) {
 				// check touch
-				if (cube.isTouching()) {
-					done = true;
-					vid.bg0.image(vec(0,0), DoneBack);
+				if (!touched && cube.isTouching()) {
+					touched = true;
+					touchesLeft--;
+					if (touchesLeft == 0){
+						done = true;
+						vid.bg0.image(vec(0,0), DoneBack);
+					}
+				}
+
+				else if (touched && !cube.isTouching()){
+					touched = false;
 				}
 
 			} else if (minigameType == 2) {
@@ -88,6 +96,7 @@ public:
 			shakeCount = 0;
 		} else if (minigameType == 1) {
 			vid.bg0.image(vec(0,0), PressBackground);
+			touchesLeft = 10;
 		} else if (minigameType == 2) {
 			vid.bg0.image(vec(0,0), FlipBackground);
 		}
@@ -110,6 +119,8 @@ private:
 	float 		timespan;
 	bool		done;
 	int			shakeCount;
+	int			touchesLeft;
+	bool		touched;
 
 	void writeText(const char *str)
     {

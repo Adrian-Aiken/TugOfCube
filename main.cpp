@@ -158,8 +158,9 @@ public:
 	
 		if (won) return;
 
-		if (!readyToPlay && cube.isTouching()) {
-			onTouch();
+		if (!readyToPlay && cube.isTouching() && !isRunning) {
+			startTimer();
+			readyToPlay = true;
 		}
 		
 		if (isRunning) timeSpan -= timestep.seconds();
@@ -168,7 +169,6 @@ public:
 			timeSpan = 0.0;
 		}
 
-		// JUST TO TEST OUT ROPE STUFF		
 		vid.sprites[6].setImage(Knot);
 		vid.sprites[6].move( (toWin + points - 1) * ropeDelta, 65);
 
@@ -186,7 +186,6 @@ public:
 		}
 
 		// Put in the time
-
 		vid.sprites[1].setImage(Digits, floor(timeSpan / 10) % 10 );
 		vid.sprites[2].setImage(Digits, floor(timeSpan) % 10);
 		vid.sprites[3].setImage(Digits, floor(timeSpan * 10) % 10 );
@@ -215,13 +214,6 @@ public:
 		if (player == P1) points--;
 		if (player == P2) points++;
 	}
-	
-	void onTouch()
-    {
-		if (won) return;
-		startTimer();
-		readyToPlay = true;
-    }
 	
 	bool isReadyToPlay() {
 		return readyToPlay;

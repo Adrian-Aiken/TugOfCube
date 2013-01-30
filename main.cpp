@@ -7,7 +7,7 @@ using namespace Sifteo;
 static const	int				numCubes = 3;
 static			int				ballCube = 0;
 static const	int				toWin = 3;
-static			int				points = 0;
+static			int				points;
 static			Float2			ballPos;
 static			Float2			ballVel;
 static			Float2			ballAcc;
@@ -142,6 +142,7 @@ public:
 
 		readyToPlay = false;
 		won = false;
+		points = 0;
 
 		// Background & images
 		vid.bg0.image(vec(0,0), MiddleBG);
@@ -150,6 +151,11 @@ public:
 	}
 
 	void update(TimeDelta timestep){
+		if (vid.physicalAccel().z < -30) {
+			init(cube);
+			return;
+		}
+	
 		if (won) return;
 
 		if (!readyToPlay && cube.isTouching()) {

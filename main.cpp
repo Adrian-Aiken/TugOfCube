@@ -38,7 +38,8 @@ public:
 		vid.attach(cube);
 
 		// Put in the background image
-		vid.bg0.image(vec(0,0), Blank);
+		int team = _cube == 0 ? 0 : 1;
+		vid.bg0.image(vec(0,0), PlayerImage, team);
 		
 	}
 
@@ -151,7 +152,8 @@ public:
 	}
 
 	void update(TimeDelta timestep){
-		if (vid.physicalAccel().z < -30) {
+		if (won && vid.physicalAccel().z < -30) {
+			won = false;
 			init(cube);
 			return;
 		}

@@ -14,3 +14,5 @@ Ball		= image{"ball.png", pinned=true, width=16, height=16}
 Digits		= image{"digits.png", pinned=true, width=8, height=16}
 DoneBack	= image{"Checkmark.png", quality=5}
 Winner		= image{"Winner.png", quality=9.5, width=128, height=128}
+PlayerImage = image{"Player.png", quality=5, width=128, height=128}
+TeamImage	= image{"Team.png", quality=5, width=128, height=128}

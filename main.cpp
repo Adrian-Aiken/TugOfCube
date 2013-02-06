@@ -152,6 +152,42 @@ public:
         vid.bg0.erase(StripeTile);
 
 		resetTimer();
+		
+		// ----------- MENU -------------
+		Menu m(vid, &menuAssets, menuItems);
+		m.anchor(1);
+		
+		struct MenuEvent e;
+		uint8_t item;
+
+		while (m.pollEvent(&e)) {
+			switch (e.type) {
+				case MENU_ITEM_PRESS:
+					m.anchor(e.item);
+					break;
+				case MENU_EXIT:
+					ASSERT(false);
+					break;
+				case MENU_NEIGHBOR_ADD:
+					break;
+				case MENU_NEIGHBOR_REMOVE:
+					break;
+				case MENU_ITEM_ARRIVE:
+					item = e.item;
+					break;
+				case MENU_ITEM_DEPART:
+					break;
+				case MENU_PREPAINT:
+					break;
+				case MENU_UNEVENTFUL:
+					ASSERT(false);
+					break;
+			}
+			m.performDefault();
+		}
+
+		LOG("Selected Game: %d\n", e.item);
+		vid.bg0.image(vec(0,0), MiddleBG);
 	}
 
 	void update(TimeDelta timestep){
@@ -224,6 +260,10 @@ public:
 		return readyToPlay;
 	}
 	
+	bool isWon() {
+		return won;
+	}
+	
 	void setReadyToPlay(bool isReady) {
 		readyToPlay = isReady;
 	}
@@ -232,6 +272,8 @@ public:
 		return vid;
 	}
 	
+	// for some reason I need this function so that
+	// the startup doesn't have an error loading the image
 	void setGameBackground() {
 		vid.bg0.image(vec(0,0), MiddleBG);
 	}
@@ -247,53 +289,12 @@ private:
 	float		ropeDelta;
 };
 
-void doMenu() {
-
-}
-
 void main(){
 
 	static MinigameCube cubes[2];
 	static MiddleGameCube mid;
 
 	mid.init(1);
-
-	// ----------- MENU -------------
-	Menu m(mid.getVideoBuffer(), &menuAssets, menuItems);
-    m.anchor(1);
-	
-	struct MenuEvent e;
-    uint8_t item;
-
-	while (m.pollEvent(&e)) {
-		switch (e.type) {
-			case MENU_ITEM_PRESS:
-				m.anchor(e.item);
-				break;
-			case MENU_EXIT:
-				ASSERT(false);
-				break;
-			case MENU_NEIGHBOR_ADD:
-				break;
-			case MENU_NEIGHBOR_REMOVE:
-				break;
-			case MENU_ITEM_ARRIVE:
-				item = e.item;
-				break;
-			case MENU_ITEM_DEPART:
-				break;
-			case MENU_PREPAINT:
-				break;
-			case MENU_UNEVENTFUL:
-				ASSERT(false);
-				break;
-		}
-		m.performDefault();
-	}
-
-	LOG("Selected Game: %d\n", e.item);
-	// ------------- GAME ------------------
-	
 	mid.setGameBackground();
 	cubes[0].init(0);
 	cubes[1].init(2);
@@ -302,7 +303,7 @@ void main(){
 	bool going = true;
 	while (1) {
 		TimeDelta td = ts.delta();
-
+		
 		if (going) {
 			neighbors = Neighborhood(MIDDLE);
 			if ( cubes[0].isDone() && neighbors.sideOf(P1) != NO_SIDE ) {

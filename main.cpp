@@ -1,4 +1,5 @@
 #include <sifteo.h>
+#include <sifteo/menu.h>
 #include "assets.gen.h"
 #include "Minigame.h"
 
@@ -12,6 +13,8 @@ static			Float2			ballPos;
 static			Float2			ballVel;
 static			Float2			ballAcc;
 static			Neighborhood	neighbors;
+static struct 	MenuItem 		menuItems[] = { {&IconTwoPlayer, NULL}, {&IconFourPlayer, NULL}, {&IconSixPlayer, NULL}, {&IconEightPlayer, NULL}, {NULL, NULL} };
+static struct 	MenuAssets 		menuAssets = {&BgTile, &Footer, &LabelEmpty, {&Tip0, &Tip1, &Tip2, NULL}};
 
 
 static AssetSlot MainSlot = AssetSlot::allocate()
@@ -146,7 +149,7 @@ public:
 		points = 0;
 
 		// Background & images
-		vid.bg0.image(vec(0,0), MiddleBG);
+        vid.bg0.erase(StripeTile);
 
 		resetTimer();
 	}
@@ -224,6 +227,14 @@ public:
 	void setReadyToPlay(bool isReady) {
 		readyToPlay = isReady;
 	}
+	
+	VideoBuffer &getVideoBuffer() {
+		return vid;
+	}
+	
+	void setGameBackground() {
+		vid.bg0.image(vec(0,0), MiddleBG);
+	}
 
 private:
 	VideoBuffer	vid;
@@ -236,17 +247,57 @@ private:
 	float		ropeDelta;
 };
 
+void doMenu() {
 
+}
 
 void main(){
 
 	static MinigameCube cubes[2];
 	static MiddleGameCube mid;
 
-	cubes[0].init(0);
 	mid.init(1);
-	cubes[1].init(2);
 
+	// ----------- MENU -------------
+	Menu m(mid.getVideoBuffer(), &menuAssets, menuItems);
+    m.anchor(1);
+	
+	struct MenuEvent e;
+    uint8_t item;
+
+	while (m.pollEvent(&e)) {
+		switch (e.type) {
+			case MENU_ITEM_PRESS:
+				m.anchor(e.item);
+				break;
+			case MENU_EXIT:
+				ASSERT(false);
+				break;
+			case MENU_NEIGHBOR_ADD:
+				break;
+			case MENU_NEIGHBOR_REMOVE:
+				break;
+			case MENU_ITEM_ARRIVE:
+				item = e.item;
+				break;
+			case MENU_ITEM_DEPART:
+				break;
+			case MENU_PREPAINT:
+				break;
+			case MENU_UNEVENTFUL:
+				ASSERT(false);
+				break;
+		}
+		m.performDefault();
+	}
+
+	LOG("Selected Game: %d\n", e.item);
+	// ------------- GAME ------------------
+	
+	mid.setGameBackground();
+	cubes[0].init(0);
+	cubes[1].init(2);
+	
 	TimeStep ts;
 	bool going = true;
 	while (1) {

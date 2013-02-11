@@ -22,6 +22,9 @@ Knot		= image{"knot_tog.png", pinned=true, width=64, height=64, quality=7}
 Font		= image{"font-8x16.png", pinned=true, width=8, height=16}
 Ball		= image{"ball.png", pinned=true, width=16, height=16}
 Digits		= image{"digits.png", pinned=true, width=8, height=16}
+Fullprog	= image{"prog_full.png"}
+Halfprog	= image{"prog_half.png"}
+Noneprog	= image{"prog_none.png"}
 
 -- menu images
 BgTile = image{ "bg.png", pinned=1 }

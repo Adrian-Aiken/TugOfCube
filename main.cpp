@@ -13,6 +13,10 @@ static			Float2			ballPos;
 static			Float2			ballVel;
 static			Float2			ballAcc;
 static			Neighborhood	neighbors;
+
+static			float			fullprog = 1.0 / 14.0;
+static			float			halfprog = 1.0 / 28.0;
+
 static struct 	MenuItem 		menuItems[] = { {&IconTwoPlayer, NULL}, {&IconFourPlayer, NULL}, {&IconSixPlayer, NULL}, {&IconEightPlayer, NULL}, {NULL, NULL} };
 static struct 	MenuAssets 		menuAssets = {&BgTile, &Footer, &LabelEmpty, {&Tip0, &Tip1, &Tip2, NULL}};
 
@@ -29,6 +33,9 @@ static Metadata M = Metadata()
 // CUBE ENUMS
 enum { P1, MIDDLE, P2 };
 
+// Gametype Enums
+enum { SHAKE, TAP, FLIP };
+
 class MinigameCube {
 public:
 
@@ -37,7 +44,7 @@ public:
 		done = false;
 		timespan = 0;
 		
-		vid.initMode(BG0);
+		vid.initMode(BG0_BG1);
 		vid.attach(cube);
 
 		// Put in the background image
@@ -47,24 +54,34 @@ public:
 	}
 
 	void update(TimeDelta timestep){
-		if (!done) {
-			timespan += timestep.seconds();
+		if (done) return;
+		
+		timespan += timestep.seconds();
 			
-			// switch (1-n) for minigame type
-			if (minigameType == 0) {
+		// switch (1-n) for minigame type
+		switch (minigameType) {
+
+			case SHAKE:
+			{
 				Float2 accel = vid.physicalAccel().xy();
 				if (abs(accel.x) > 40 && abs(accel.y) > 40) {
 					shakeCount++;
+					progress += 1.0/3.0;
 					if (shakeCount >= 3) {
 						done = true;
 						vid.bg0.image(vec(0,0), DoneBack);
 					}
 				}
-			} else if (minigameType == 1) {
-				// check touch
+			}
+			break;
+
+			case TAP:
+			{
+				// check touching
 				if (!touched && cube.isTouching()) {
 					touched = true;
 					touchesLeft--;
+					progress += 0.1;
 					if (touchesLeft == 0){
 						done = true;
 						vid.bg0.image(vec(0,0), DoneBack);
@@ -74,15 +91,35 @@ public:
 				else if (touched && !cube.isTouching()){
 					touched = false;
 				}
+			}
+			break;
 
-			} else if (minigameType == 2) {
+			case FLIP:
+			{
 				int8_t z = vid.physicalAccel().z;
 				if (z < -30) {
 					done = true;
 					vid.bg0.image(vec(0,0), DoneBack);
 				}
 			}
+			break;
 		}
+
+		if (done) vid.bg1.eraseMask();
+
+		// Draw the progress bar
+		int xloc = 1;
+		float progToDraw = progress;
+
+		while (progToDraw > fullprog) {
+			vid.bg1.image( vec(xloc++, 14), Fullprog);
+			progToDraw -= fullprog;
+		}
+		if (progToDraw > halfprog)
+			vid.bg1.image( vec(xloc++, 14), Halfprog);
+		while (xloc <= 14)
+			vid.bg1.image( vec(xloc++, 14), Noneprog);
+
 	}
 	
 	void resetMinigame() {
@@ -94,6 +131,9 @@ public:
 		done = false;
 		timespan = 0;
 		minigameType = type;
+		progress = 0.0;
+
+		vid.bg1.fillMask( vec(1, 14), vec(14, 1) );
 	
 		if (minigameType == 0) {
 			vid.bg0.image(vec(0,0), Background);
@@ -125,6 +165,7 @@ private:
 	int			shakeCount;
 	int			touchesLeft;
 	bool		touched;
+	float		progress;
 
 	void writeText(const char *str)
     {

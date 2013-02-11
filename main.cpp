@@ -66,8 +66,8 @@ public:
 				Float2 accel = vid.physicalAccel().xy();
 				if (abs(accel.x) > 40 && abs(accel.y) > 40) {
 					shakeCount++;
-					progress += 1.0/3.0;
-					if (shakeCount >= 3) {
+					progress += 1.0/50.0;
+					if (shakeCount >= 50) {
 						done = true;
 						vid.bg0.image(vec(0,0), DoneBack);
 					}
@@ -107,7 +107,7 @@ public:
 			case STOP:
 			{
 				progress += timestep.seconds() / 3.0;
-				if (vid.physicalAccel().x > 0.0 && vid.physicalAccel().y > 0.0)
+				if (vid.physicalAccel().x > 1 && vid.physicalAccel().y > 1)
 					progress = 0.0;
 				if (progress >= 1.0) {
 					done = true;

@@ -10,6 +10,7 @@ GameAssets	= group{}
 Background	= image{"shake.png", quality=9.5}
 PressBackground = image{"press.png", quality=5}
 FlipBackground = image{"Flip.png", quality=5}
+StopBackground = image{"Stop.png", quality=5}
 Blank		= image{"middlebg.png", quality=3}
 MiddleBG    = image{"tug_of_war_centercube.png", quality=3}
 DoneBack	= image{"Checkmark.png", quality=5}

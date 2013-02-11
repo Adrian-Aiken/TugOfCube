@@ -34,7 +34,7 @@ static Metadata M = Metadata()
 enum { P1, MIDDLE, P2 };
 
 // Gametype Enums
-enum { SHAKE, TAP, FLIP };
+enum { SHAKE, TAP, FLIP, STOP };
 
 class MinigameCube {
 public:
@@ -103,6 +103,18 @@ public:
 				}
 			}
 			break;
+
+			case STOP:
+			{
+				progress += timestep.seconds() / 3.0;
+				if (vid.physicalAccel().x > 0.0 && vid.physicalAccel().y > 0.0)
+					progress = 0.0;
+				if (progress >= 1.0) {
+					done = true;
+					vid.bg0.image(vec(0,0), DoneBack);
+				}
+			}
+			break;
 		}
 
 		if (done) vid.bg1.eraseMask();
@@ -135,14 +147,25 @@ public:
 
 		vid.bg1.fillMask( vec(1, 14), vec(14, 1) );
 	
-		if (minigameType == 0) {
-			vid.bg0.image(vec(0,0), Background);
-			shakeCount = 0;
-		} else if (minigameType == 1) {
-			vid.bg0.image(vec(0,0), PressBackground);
-			touchesLeft = 10;
-		} else if (minigameType == 2) {
-			vid.bg0.image(vec(0,0), FlipBackground);
+		switch (minigameType) {
+		case SHAKE:
+			{
+				vid.bg0.image(vec(0,0), Background);
+				shakeCount = 0;
+			} break;
+		case TAP:
+			{
+				vid.bg0.image(vec(0,0), PressBackground);
+				touchesLeft = 10;
+			} break;
+		case FLIP:
+			{
+				vid.bg0.image(vec(0,0), FlipBackground);
+			} break;
+		case STOP:
+			{
+				vid.bg0.image(vec(0,0), StopBackground);
+			} break;
 		}
 	}
 	
@@ -369,7 +392,7 @@ void main(){
 		if (mid.isReadyToPlay()) {
 			mid.setReadyToPlay(false);
 			Random rand;
-			int type = rand.randint(0, 2);
+			int type = rand.randint(0, 3);
 			cubes[0].startMinigame(type);
 			cubes[1].startMinigame(type);
 		} else if (!mid.isReadyToPlay()) {

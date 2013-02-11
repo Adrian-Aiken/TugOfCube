@@ -5,7 +5,8 @@
 
 using namespace Sifteo;
 
-static const	int				numCubes = 3;
+static 			int				numCubes = 3; // default 3, up to 9
+static const    int				maxMinigameCubes = 8;
 static			int				ballCube = 0;
 static const	int				toWin = 3;
 static			int				points;
@@ -28,10 +29,10 @@ static Metadata M = Metadata()
 	.title("Tug Of Cube Prototype")
 	.package("edu.rit.aca6943.tilting", "0.2")
 	.icon(Icon)
-	.cubeRange(3);
+	.cubeRange(3,9);
 
 // CUBE ENUMS
-enum { P1, MIDDLE, P2 };
+enum { MIDDLE, P1, P2, P3, P4, P5, P6, P7, P8 };
 
 // Gametype Enums
 enum { SHAKE, TAP, FLIP, STOP };
@@ -40,6 +41,7 @@ class MinigameCube {
 public:
 
 	void init(CubeID _cube){
+		LOG("initializing cube\n");
 		cube = _cube;
 		done = false;
 		timespan = 0;
@@ -48,8 +50,8 @@ public:
 		vid.attach(cube);
 
 		// Put in the background image
-		int team = _cube == 0 ? 0 : 1;
-		vid.bg0.image(vec(0,0), PlayerImage, team);
+		int team = ((_cube-1) % 2 == 0 ? 0 : 1);
+		vid.bg0.image(vec(0,0), TeamImage, team);
 		
 	}
 
@@ -200,7 +202,8 @@ private:
 
 class MiddleGameCube {
 public:
-	void init(CubeID _cube){
+	int init(CubeID _cube){
+		LOG("initializing mid cube\n");
 		cube = _cube;
 		vid.initMode(BG0_SPR_BG1);
 		vid.attach(_cube);
@@ -252,6 +255,8 @@ public:
 
 		LOG("Selected Game: %d\n", e.item);
 		vid.bg0.image(vec(0,0), MiddleBG);
+		
+		return (e.item+1)*2+1;
 	}
 
 	void update(TimeDelta timestep){
@@ -316,8 +321,8 @@ public:
 	}
 
 	void addPoints(int player){
-		if (player == P1) points--;
-		if (player == P2) points++;
+		if (player == P1 || player == P3 || player == P5 || player == P7) points--;
+		if (player == P2 || player == P4 || player == P6 || player == P8) points++;
 	}
 	
 	bool isReadyToPlay() {
@@ -355,13 +360,13 @@ private:
 
 void main(){
 
-	static MinigameCube cubes[2];
 	static MiddleGameCube mid;
-
-	mid.init(1);
+	numCubes = mid.init(0);
 	mid.setGameBackground();
-	cubes[0].init(0);
-	cubes[1].init(2);
+	static MinigameCube cubes[maxMinigameCubes];
+	for (int i = 0; i < numCubes-1; i++) {
+		cubes[i].init(i+1);
+	}
 	
 	TimeStep ts;
 	bool going = true;
@@ -370,12 +375,12 @@ void main(){
 		
 		if (going) {
 			neighbors = Neighborhood(MIDDLE);
-			if ( cubes[0].isDone() && neighbors.sideOf(P1) != NO_SIDE ) {
+			if ( cubes[0].isDone() && neighbors.sideOf(Sifteo::LEFT) != NO_SIDE ) {
 				mid.addPoints(P1);
 				mid.stopTimer();
 				going = false;
 			}
-			if ( cubes[1].isDone() && neighbors.sideOf(P2) != NO_SIDE ) {
+			if ( cubes[1].isDone() && neighbors.sideOf(Sifteo::RIGHT) != NO_SIDE ) {
 				mid.addPoints(P2);
 				mid.stopTimer();
 				going = false;
@@ -393,8 +398,9 @@ void main(){
 			mid.setReadyToPlay(false);
 			Random rand;
 			int type = rand.randint(0, 3);
-			cubes[0].startMinigame(type);
-			cubes[1].startMinigame(type);
+			for (int i = 0; i < numCubes-1; i++) {
+				cubes[i].startMinigame(type);
+			}
 		} else if (!mid.isReadyToPlay()) {
 			if (cubes[0].isDone() && cubes[1].isDone()) {
 				// update knot
@@ -402,7 +408,7 @@ void main(){
 			}
 		}
 
-		for (unsigned i = 0; i < arraysize(cubes); i++) {
+		for (unsigned i = 0; i < numCubes-1; i++) {
 			if (!cubes[i].isDone()) {
 				cubes[i].update(td);
 			}

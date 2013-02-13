@@ -179,6 +179,10 @@ public:
 	float getTimespan() {
 		return timespan;
 	}
+	
+	CubeID &getCubeID() {
+		return cube;
+	}
 
 private:
 	VideoBuffer vid;
@@ -375,12 +379,14 @@ void main(){
 		
 		if (going) {
 			neighbors = Neighborhood(MIDDLE);
-			if ( cubes[0].isDone() && neighbors.sideOf(Sifteo::LEFT) != NO_SIDE ) {
+			if ( cubes[0].isDone() && neighbors.sideOf(cubes[0].getCubeID()) != NO_SIDE ) {
+				LOG("Team one wins this minigame\n");
 				mid.addPoints(P1);
 				mid.stopTimer();
 				going = false;
 			}
-			if ( cubes[1].isDone() && neighbors.sideOf(Sifteo::RIGHT) != NO_SIDE ) {
+			if ( cubes[1].isDone() && neighbors.sideOf(cubes[1].getCubeID()) != NO_SIDE ) {
+				LOG("Team two wins this minigame\n");
 				mid.addPoints(P2);
 				mid.stopTimer();
 				going = false;

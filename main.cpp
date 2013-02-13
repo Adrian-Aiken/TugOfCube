@@ -41,7 +41,6 @@ class MinigameCube {
 public:
 
 	void init(CubeID _cube){
-		LOG("initializing cube\n");
 		cube = _cube;
 		done = false;
 		timespan = 0;
@@ -207,7 +206,6 @@ private:
 class MiddleGameCube {
 public:
 	int init(CubeID _cube){
-		LOG("initializing mid cube\n");
 		cube = _cube;
 		vid.initMode(BG0_SPR_BG1);
 		vid.attach(_cube);
@@ -368,9 +366,10 @@ void main(){
 	numCubes = mid.init(0);
 	mid.setGameBackground();
 	static MinigameCube cubes[maxMinigameCubes];
-	for (int i = 0; i < numCubes-1; i++) {
-		cubes[i].init(i+1);
+	for (int i = 1; i < numCubes; i++) {
+		cubes[i].init(i);
 	}
+	LOG("Initialized %d cubes\n", numCubes);
 	
 	Sifteo::AudioChannel(1).setVolume(Sifteo::AudioChannel::MAX_VOLUME);
 
@@ -380,14 +379,57 @@ void main(){
 		TimeDelta td = ts.delta();
 		
 		if (going) {
-			neighbors = Neighborhood(MIDDLE);
-			if ( cubes[0].isDone() && neighbors.sideOf(cubes[0].getCubeID()) != NO_SIDE ) {
+			// Check for win
+			
+			// Team done?
+			bool teamOneDone = true;
+			bool teamTwoDone = true;
+			if ( numCubes >= 3 ) {
+				if (!cubes[P1].isDone()) teamOneDone = false;
+				if (!cubes[P2].isDone()) teamTwoDone = false;
+				if ( numCubes >= 5 ) {
+					if (!cubes[P3].isDone()) teamOneDone = false;
+					if (!cubes[P4].isDone()) teamTwoDone = false;
+					if ( numCubes >= 7 ) {
+						if (!cubes[P5].isDone()) teamOneDone = false;
+						if (!cubes[P6].isDone()) teamTwoDone = false;
+						if ( numCubes >= 9 ) {
+							if (!cubes[P7].isDone()) teamOneDone = false;
+							if (!cubes[P8].isDone()) teamTwoDone = false;
+						}
+					}
+				}
+			}
+			
+			// Check for chain of cubes
+			bool teamOneChained = true;
+			bool teamTwoChained = true;
+			
+			if ( numCubes >= 3 ) {
+				neighbors = Neighborhood(MIDDLE);
+				CubeID left = neighbors.cubeAt(Sifteo::LEFT);
+				CubeID right = neighbors.cubeAt(Sifteo::RIGHT);
+				if ( left != P1 ) teamOneChained = false;
+				if ( right != P2 ) teamTwoChained = false;
+				if ( numCubes >= 5 ) {
+					
+					if ( numCubes >= 7 ) {
+					
+						if ( numCubes >= 9 ) {
+						
+						}
+					}
+				}
+			}
+			
+			
+			if ( teamOneDone && teamOneChained ) {
 				LOG("Team one wins this minigame\n");
 				mid.addPoints(P1);
 				mid.stopTimer();
 				going = false;
 			}
-			if ( cubes[1].isDone() && neighbors.sideOf(cubes[1].getCubeID()) != NO_SIDE ) {
+			if ( teamTwoDone && teamTwoChained ) {
 				LOG("Team two wins this minigame\n");
 				mid.addPoints(P2);
 				mid.stopTimer();
@@ -415,7 +457,7 @@ void main(){
 			case TAP:   {Sifteo::AudioChannel(1).play(STap);}   break;
 			}
 
-			for (int i = 0; i < numCubes-1; i++) {
+			for (int i = 1; i < numCubes; i++) {
 				cubes[i].startMinigame(type);
 			}
 		} else if (!mid.isReadyToPlay()) {
@@ -425,7 +467,7 @@ void main(){
 			}
 		}
 
-		for (unsigned i = 0; i < numCubes-1; i++) {
+		for (unsigned i = 1; i < numCubes; i++) {
 			if (!cubes[i].isDone()) {
 				cubes[i].update(td);
 			}

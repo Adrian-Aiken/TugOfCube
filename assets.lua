@@ -3,6 +3,12 @@
 IconAssets = group{quality=9.95}
 Icon = image{"icon.png"}
 
+-- game audio
+SFlip		= sound{"Flip_Prompt.wav"}
+SShake		= sound{"Shake_Prompt.wav"}
+SStop		= sound{"Stop_Prompt.wav"}
+STap		= sound{"Tap_Prompt.wav"}
+
 -- Game assets
 GameAssets	= group{}
 
@@ -26,6 +32,8 @@ Digits		= image{"digits.png", pinned=true, width=8, height=16, quality=9.7}
 Fullprog	= image{"prog_full.png"}
 Halfprog	= image{"prog_half.png"}
 Noneprog	= image{"prog_none.png"}
+
+
 
 -- menu images
 BgTile = image{ "bg.png", pinned=1 }

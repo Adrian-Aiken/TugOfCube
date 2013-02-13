@@ -372,6 +372,8 @@ void main(){
 		cubes[i].init(i+1);
 	}
 	
+	Sifteo::AudioChannel(1).setVolume(Sifteo::AudioChannel::MAX_VOLUME);
+
 	TimeStep ts;
 	bool going = true;
 	while (1) {
@@ -404,6 +406,15 @@ void main(){
 			mid.setReadyToPlay(false);
 			Random rand;
 			int type = rand.randint(0, 3);
+
+			// Play prompting audio
+			switch(type){
+			case FLIP:  {Sifteo::AudioChannel(1).play(SFlip);}  break;
+			case SHAKE: {Sifteo::AudioChannel(1).play(SShake);} break;
+			case STOP:  {Sifteo::AudioChannel(1).play(SStop);}	break;
+			case TAP:   {Sifteo::AudioChannel(1).play(STap);}   break;
+			}
+
 			for (int i = 0; i < numCubes-1; i++) {
 				cubes[i].startMinigame(type);
 			}

@@ -6,7 +6,7 @@
 using namespace Sifteo;
 
 static 			int				numCubes = 3; // default 3, up to 9
-static const    int				maxMinigameCubes = 8;
+static const    int				maxGameCubes = 9;
 static			int				ballCube = 0;
 static const	int				toWin = 3;
 static			int				points;
@@ -287,11 +287,13 @@ public:
 
 		// Testing if someone 'won'
 		if ( points <= -3 ) {
+			LOG("Team one wins!\n");
 			vid.sprites.erase();
 			vid.bg0.image(vec(0,0), Winner, 0);
 			won = true; readyToPlay = false;
 		}
 		if ( points >= 3 ) {
+			LOG("Team two wins with %d points!\n", points);
 			vid.sprites.erase();
 			vid.bg0.image(vec(0,0), Winner, 1);
 			won = true; readyToPlay = false;
@@ -365,7 +367,7 @@ void main(){
 	static MiddleGameCube mid;
 	numCubes = mid.init(0);
 	mid.setGameBackground();
-	static MinigameCube cubes[maxMinigameCubes];
+	static MinigameCube cubes[maxGameCubes];
 	for (int i = 1; i < numCubes; i++) {
 		cubes[i].init(i);
 	}
@@ -384,6 +386,7 @@ void main(){
 			// Team done?
 			bool teamOneDone = true;
 			bool teamTwoDone = true;
+			
 			if ( numCubes >= 3 ) {
 				if (!cubes[P1].isDone()) teamOneDone = false;
 				if (!cubes[P2].isDone()) teamTwoDone = false;
@@ -405,18 +408,45 @@ void main(){
 			bool teamOneChained = true;
 			bool teamTwoChained = true;
 			
-			if ( numCubes >= 3 ) {
+			// Check team one
+			if ( teamOneDone && numCubes >= 3 ) {
 				neighbors = Neighborhood(MIDDLE);
 				CubeID left = neighbors.cubeAt(Sifteo::LEFT);
+				if ( !left.isDefined() || (int)left % 2 == 0 ) teamOneChained = false;
+				else if ( numCubes >= 5 ) {
+					neighbors = Neighborhood(left);
+					left = neighbors.cubeAt(Sifteo::LEFT);
+					if ( !left.isDefined() || (int)left % 2 == 0 ) teamOneChained = false;
+					else if ( numCubes >= 7 ) {
+						neighbors = Neighborhood(left);
+						left = neighbors.cubeAt(Sifteo::LEFT);
+						if ( !left.isDefined() || (int)left % 2 == 0 ) teamOneChained = false;
+						else if ( numCubes >= 9 ) {
+							neighbors = Neighborhood(left);
+							left = neighbors.cubeAt(Sifteo::LEFT);
+							if ( !left.isDefined() || (int)left % 2 == 0 ) teamOneChained = false;
+						}
+					}
+				}
+			}
+			
+			// Check team two
+			if ( teamTwoDone && numCubes >= 3 ) {
+				neighbors = Neighborhood(MIDDLE);
 				CubeID right = neighbors.cubeAt(Sifteo::RIGHT);
-				if ( left != P1 ) teamOneChained = false;
-				if ( right != P2 ) teamTwoChained = false;
-				if ( numCubes >= 5 ) {
-					
-					if ( numCubes >= 7 ) {
-					
-						if ( numCubes >= 9 ) {
-						
+				if ( !right.isDefined() || (int)right % 2 == 1 ) teamTwoChained = false;
+				else if ( numCubes >= 5 ) {
+					neighbors = Neighborhood(right);
+					right = neighbors.cubeAt(Sifteo::RIGHT);
+					if ( !right.isDefined() || (int)right % 2 == 1 ) teamTwoChained = false;
+					else if ( numCubes >= 7 ) {
+						neighbors = Neighborhood(right);
+						right = neighbors.cubeAt(Sifteo::RIGHT);
+						if ( !right.isDefined() || (int)right % 2 == 1 ) teamTwoChained = false;
+						else if ( numCubes >= 9 ) {
+							neighbors = Neighborhood(right);
+							right = neighbors.cubeAt(Sifteo::RIGHT);
+							if ( !right.isDefined() || (int)right % 2 == 1 ) teamTwoChained = false;
 						}
 					}
 				}
